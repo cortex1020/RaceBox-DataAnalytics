@@ -81,8 +81,10 @@ async def get_race_laps(year: int, gp: str,
         laps = dl.get_laps(year, gp_key)
         if driver:
             laps = laps[laps["Driver"] == driver.upper()]
-        return laps[["Driver", "LapNumber", "LapTimeSeconds", "Compound",
-                      "TyreLife", "Stint", "PitInTime"]].fillna("").to_dict(orient="records")
+        out = laps[["Driver", "LapNumber", "LapTimeSeconds", "Compound",
+                    "TyreLife", "Stint", "PitInTime"]].copy()
+        out["PitInTime"] = out["PitInTime"].astype(str).replace("NaT", "")
+        return out.where(out.notna(), "").to_dict(orient="records")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

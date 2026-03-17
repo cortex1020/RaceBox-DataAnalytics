@@ -297,6 +297,7 @@ async function loadLapChart() {
       data: data.laps.map((l, j) => ({ x: l, y: data.times[j] })),
       borderColor: colors[i % colors.length],
       backgroundColor: "transparent",
+      showLine: true,
       borderWidth: 1.5,
       pointRadius: 0,
       tension: 0.3,

@@ -8,7 +8,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from data_loader import load_session, get_driver_telemetry
+from backend.data_loader import load_session, get_driver_telemetry
 
 
 def compare_drivers_telemetry(year: int, gp: str | int,

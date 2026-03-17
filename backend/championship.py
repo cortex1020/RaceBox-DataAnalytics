@@ -9,7 +9,7 @@ import random
 from dataclasses import dataclass
 import numpy as np
 
-from data_loader import get_driver_standings, get_constructor_standings, get_event_schedule
+from backend.data_loader import get_driver_standings, get_constructor_standings, get_event_schedule
 
 F1_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 FASTEST_LAP_POINT = 1

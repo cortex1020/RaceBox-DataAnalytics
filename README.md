@@ -17,23 +17,30 @@ RaceBox is a full-stack Formula 1 analytics platform that combines live and hist
 - Backend: FastAPI + Uvicorn
 - Data: fastf1, Jolpica Ergast-compatible API, OpenF1
 - Analytics: pandas, numpy
-- Frontend: single-page dashboard (`index.html` + `app.js`) with Chart.js
+- Frontend: single-page dashboard (`frontend/index.html`) + external CSS/JS with Chart.js
 
 ## Project Layout
 
-This repository currently uses a flat layout (no `racebox/` package folder):
+This repository uses a clean backend/frontend split:
 
 ```text
 F1-Simulator/
-|- main.py
+|- backend/
+|  |- __init__.py
+|  |- main.py
+|  |- data_loader.py
+|  |- strategy.py
+|  |- simulator.py
+|  |- telemetry.py
+|  |- championship.py
+|- frontend/
+|  |- index.html
+|  |- static/
+|     |- css/
+|     |  |- styles.css
+|     |- js/
+|        |- app.js
 |- run.py
-|- data_loader.py
-|- strategy.py
-|- simulator.py
-|- telemetry.py
-|- championship.py
-|- index.html
-|- app.js
 |- requirements.txt
 |- cache/                # auto-created fastf1 cache
 ```
@@ -113,7 +120,7 @@ GET  /api/standings/constructors/{year}
 - First-time `fastf1` session loads can download large datasets and may take time.
 - Cached data is stored in `cache/` and makes repeat requests much faster.
 - If you are on Ubuntu/Debian and see `externally-managed-environment`, install packages inside `.venv` (recommended) instead of system Python.
-- Static dashboard script is served at `/static/app.js`.
+- Static dashboard assets are served from `/static/` (for example `/static/css/styles.css` and `/static/js/app.js`).
 
 ## License
 

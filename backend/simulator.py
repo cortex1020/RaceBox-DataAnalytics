@@ -12,7 +12,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from strategy import PIT_LOSS_SECONDS, lap_time_on_tyre, TYRE_DEG_RATE
+from backend.strategy import PIT_LOSS_SECONDS, lap_time_on_tyre, TYRE_DEG_RATE
 
 
 @dataclass

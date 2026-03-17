@@ -1,24 +1,24 @@
 """
 RaceBox — api/main.py
 FastAPI application exposing all RaceBox modules via REST endpoints.
-Run with: uvicorn racebox.api.main:app --reload --port 8000
+Run with: uvicorn backend.main:app --reload --port 8000
 """
 from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import traceback
 
-import data_loader as dl
-import strategy as strat
-import simulator as sim
-import telemetry as tel
-import championship as champ
+from backend import data_loader as dl
+from backend import strategy as strat
+from backend import simulator as sim
+from backend import telemetry as tel
+from backend import championship as champ
 
 app = FastAPI(
     title="RaceBox API",
@@ -33,15 +33,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DASHBOARD_DIR = Path(__file__).parent
-app.mount("/static", StaticFiles(directory=str(DASHBOARD_DIR)), name="static")
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR / "static")), name="static")
 
 
 # ─── Dashboard ──────────────────────────────────────────────────────────────────
 
 @app.get("/", include_in_schema=False)
 async def serve_dashboard():
-    return FileResponse(str(DASHBOARD_DIR / "index.html"))
+    return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -289,4 +289,4 @@ async def constructor_standings(year: int):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

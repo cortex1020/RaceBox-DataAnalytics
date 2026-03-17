@@ -10,7 +10,6 @@ Usage:
     python run.py --port 8080
     python run.py --reload            # dev mode with hot reload
 """
-import sys
 import argparse
 import uvicorn
 
@@ -33,7 +32,7 @@ def main():
     """.format(port=args.port))
 
     uvicorn.run(
-        "main:app",
+        "backend.main:app",
         host=args.host,
         port=args.port,
         reload=args.reload,

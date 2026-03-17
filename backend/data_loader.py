@@ -13,7 +13,8 @@ import fastf1
 import pandas as pd
 import httpx
 
-CACHE_DIR = Path(__file__).parent / "cache"
+BASE_DIR = Path(__file__).resolve().parent.parent
+CACHE_DIR = BASE_DIR / "cache"
 CACHE_DIR.mkdir(exist_ok=True)
 fastf1.Cache.enable_cache(str(CACHE_DIR))
 

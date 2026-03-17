@@ -129,7 +129,10 @@ def pace_evolution(laps_df: pd.DataFrame, drivers: list[str]) -> dict:
     for drv in drivers:
         d_laps = laps_df[laps_df["Driver"] == drv].copy()
         # Filter: remove pit in/out laps and very slow laps (>107% of median)
-        d_laps = d_laps[d_laps["PitInTime"].isna() & d_laps["PitOutTime"].isna()]
+        d_laps = d_laps[
+            (d_laps["PitInTime"].isna() | (d_laps["PitInTime"] == ""))
+            & (d_laps["PitOutTime"].isna() | (d_laps["PitOutTime"] == ""))
+        ]
         median_lt = d_laps["LapTimeSeconds"].median()
         d_laps = d_laps[d_laps["LapTimeSeconds"] < median_lt * 1.07]
         result[drv] = {

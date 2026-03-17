@@ -22,7 +22,7 @@ fastf1.Cache.enable_cache(str(CACHE_DIR))
 ERGAST_BASE = "https://api.jolpi.ca/ergast/f1"
 OPENF1_BASE = "https://api.openf1.org/v1"
 
-SUPPORTED_YEARS = [2024, 2025]
+SUPPORTED_YEARS = [2024, 2025, 2026]
 
 
 # ─── fastf1 helpers ────────────────────────────────────────────────────────────

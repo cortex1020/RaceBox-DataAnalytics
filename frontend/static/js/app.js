@@ -33,7 +33,7 @@ const COMPOUND_COLORS = {
 
 // State
 let state = {
-  year: 2024,
+  year: 2026,
   gp: null,
   gpName: "",
   schedule: [],

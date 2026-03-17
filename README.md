@@ -122,6 +122,21 @@ GET  /api/standings/constructors/{year}
 - If you are on Ubuntu/Debian and see `externally-managed-environment`, install packages inside `.venv` (recommended) instead of system Python.
 - Static dashboard assets are served from `/static/` (for example `/static/css/styles.css` and `/static/js/app.js`).
 
+## Contributing
+
+Contributions are welcome.
+
+If you want to add features, fix bugs, or improve docs:
+
+1. Fork this repository.
+2. Create a new branch in your fork.
+3. Commit your changes with clear messages.
+4. Open a Pull Request to this repository.
+
 ## License
 
-Add your preferred license file (`LICENSE`) for open-source distribution.
+This project is licensed under the MIT License.
+
+Copyright (c) 2026 Sanaullah Turab
+
+See `LICENSE` for full text.

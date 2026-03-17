@@ -163,6 +163,7 @@
         display: grid;
         grid-template-columns: 220px 1fr 260px;
         overflow: hidden;
+        min-height: 0;
       }
 
       /* ── Left sidebar ── */
@@ -249,6 +250,7 @@
         flex-direction: column;
         overflow: hidden;
         background: var(--bg);
+        min-height: 0;
       }
 
       .view {
@@ -256,6 +258,7 @@
         flex-direction: column;
         height: 100%;
         overflow: hidden;
+        min-height: 0;
       }
       .view.active {
         display: flex;
@@ -295,9 +298,14 @@
         gap: 10px;
         padding: 12px;
         overflow-y: auto;
+        min-height: 0;
       }
       #view-race.active {
         display: grid;
+      }
+
+      #view-race .panel {
+        min-height: 0;
       }
 
       .race-grid {
@@ -316,6 +324,22 @@
         position: relative;
         padding: 12px;
         height: 220px;
+      }
+
+      .race-results-scroll {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 340px;
+      }
+
+      .race-lap-scroll {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 280px;
+      }
+
+      .race-lap-scroll .chart-container {
+        min-width: 100%;
       }
 
       /* ── Strategy view ── */
@@ -708,17 +732,7 @@
       <!-- Content area -->
       <div class="content">
         <!-- Race Wall -->
-        <div
-          class="view active"
-          id="view-race"
-          style="
-            padding: 12px;
-            overflow-y: auto;
-            gap: 10px;
-            display: flex;
-            flex-direction: column;
-          "
-        >
+        <div class="view active" id="view-race">
           <div class="race-grid">
             <div class="stat-card">
               <div class="stat-value" id="stat-winner">—</div>
@@ -755,7 +769,7 @@
                 Reload
               </button>
             </div>
-            <div style="overflow-x: auto">
+            <div class="race-results-scroll">
               <table class="strategy-table" id="resultsTable">
                 <thead>
                   <tr>
@@ -793,8 +807,10 @@
                 >Top 5 drivers</span
               >
             </div>
-            <div class="chart-container">
-              <canvas id="lapChart"></canvas>
+            <div class="race-lap-scroll">
+              <div class="chart-container">
+                <canvas id="lapChart"></canvas>
+              </div>
             </div>
           </div>
         </div>

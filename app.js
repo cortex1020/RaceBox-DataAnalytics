@@ -264,10 +264,29 @@ async function loadLapChart() {
       .filter((r) => parseInt(r.Position) <= 5)
       .map((r) => r.Abbreviation);
 
+    if (!top5.length) {
+      document.getElementById("lapChartDrivers").textContent =
+        "No pace data available";
+      return;
+    }
+
     const paceRes = await fetch(
       `${API}/api/telemetry/${state.year}/${state.gp}/pace?drivers=${top5.join(",")}`,
     );
     const paceData = await paceRes.json();
+
+    const maxLap = Math.max(
+      0,
+      ...Object.values(paceData).flatMap((d) => d.laps || []),
+    );
+
+    const lapScroll = document.querySelector(".race-lap-scroll");
+    const lapContainer = lapScroll?.querySelector(".chart-container");
+    if (lapScroll && lapContainer) {
+      const baseWidth = lapScroll.clientWidth || 800;
+      const computedWidth = Math.max(baseWidth, maxLap * 20);
+      lapContainer.style.width = `${computedWidth}px`;
+    }
 
     destroyChart("lapChart");
     const ctx = document.getElementById("lapChart").getContext("2d");
@@ -478,7 +497,7 @@ async function runSimulation() {
       `${n} simulations · SC probability: ${(data.safety_car_probability * 100).toFixed(0)}%`;
 
     function renderBars(elId, drivers, key, color) {
-      const max = Math.max(...drivers.map((d) => d[key]));
+      const max = Math.max(0.0001, ...drivers.map((d) => d[key] || 0));
       document.getElementById(elId).innerHTML = drivers
         .slice(0, 10)
         .map(

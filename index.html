@@ -1,0 +1,1192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RaceBox — F1 Race Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0a0b;
+        --bg2: #111114;
+        --bg3: #18181d;
+        --panel: #1c1c22;
+        --border: #2a2a35;
+        --border2: #3a3a4a;
+        --red: #e8192c;
+        --red-dim: #7a0e17;
+        --green: #00e5a0;
+        --green-dim: #004d36;
+        --amber: #f5a623;
+        --amber-dim: #5c3e0d;
+        --blue: #4fa8f5;
+        --purple: #9d7df5;
+        --text: #e8e8f0;
+        --text2: #8888a0;
+        --text3: #50505f;
+        --mono: "IBM Plex Mono", monospace;
+        --display: "Barlow Condensed", sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 12px;
+        height: 100vh;
+        display: grid;
+        grid-template-rows: 48px 1fr;
+        overflow: hidden;
+      }
+
+      /* ── Header ── */
+      header {
+        background: var(--bg2);
+        border-bottom: 1px solid var(--red);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        gap: 24px;
+        position: relative;
+      }
+      .logo {
+        font-family: var(--display);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--text);
+      }
+      .logo span {
+        color: var(--red);
+      }
+      .header-ticker {
+        flex: 1;
+        font-size: 11px;
+        color: var(--text2);
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .header-ticker-inner {
+        display: inline-block;
+        animation: ticker 30s linear infinite;
+      }
+      @keyframes ticker {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .year-select,
+      .gp-select {
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 0 0 rgba(0, 229, 160, 0.4);
+        }
+        50% {
+          opacity: 0.6;
+          box-shadow: 0 0 0 4px rgba(0, 229, 160, 0);
+        }
+      }
+
+      /* ── Nav tabs ── */
+      .nav-tabs {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-left: 8px;
+      }
+      .tab {
+        font-family: var(--display);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border: none;
+        background: transparent;
+        color: var(--text3);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+        white-space: nowrap;
+      }
+      .tab:hover {
+        color: var(--text2);
+      }
+      .tab.active {
+        color: var(--red);
+        border-bottom-color: var(--red);
+      }
+
+      /* ── Main layout ── */
+      main {
+        display: grid;
+        grid-template-columns: 220px 1fr 260px;
+        overflow: hidden;
+      }
+
+      /* ── Left sidebar ── */
+      .sidebar {
+        background: var(--bg2);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sidebar-section {
+        border-bottom: 1px solid var(--border);
+        padding: 12px;
+      }
+      .sidebar-label {
+        font-family: var(--display);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text3);
+        margin-bottom: 8px;
+      }
+      .standings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        overflow-y: auto;
+        flex: 1;
+        padding: 8px;
+      }
+      .standing-row {
+        display: grid;
+        grid-template-columns: 20px 36px 1fr 40px;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 6px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background 0.1s;
+      }
+      .standing-row:hover {
+        background: var(--bg3);
+      }
+      .standing-row.selected {
+        background: var(--bg3);
+        border-left: 2px solid var(--red);
+      }
+      .pos-num {
+        color: var(--text3);
+        font-size: 10px;
+        text-align: right;
+      }
+      .driver-code {
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+      }
+      .driver-name {
+        color: var(--text2);
+        font-size: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .driver-pts {
+        color: var(--amber);
+        font-size: 11px;
+        font-weight: 500;
+        text-align: right;
+      }
+
+      .team-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 1px;
+        display: inline-block;
+        flex-shrink: 0;
+      }
+
+      /* ── Content area ── */
+      .content {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      .view {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+      .view.active {
+        display: flex;
+      }
+
+      /* ── Panel card ── */
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .panel-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg3);
+      }
+      .panel-title {
+        font-family: var(--display);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text2);
+      }
+      .panel-body {
+        padding: 12px;
+      }
+
+      /* ── Race view ── */
+      #view-race {
+        display: none;
+        grid-template-rows: auto 1fr;
+        gap: 10px;
+        padding: 12px;
+        overflow-y: auto;
+      }
+      #view-race.active {
+        display: grid;
+      }
+
+      .race-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .race-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* ── Lap time chart ── */
+      .chart-container {
+        position: relative;
+        padding: 12px;
+        height: 220px;
+      }
+
+      /* ── Strategy view ── */
+      #view-strategy {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        overflow-y: auto;
+      }
+      #view-strategy.active {
+        display: flex;
+      }
+
+      .strategy-controls {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        align-items: end;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .field-label {
+        font-size: 10px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      input[type="number"],
+      input[type="text"],
+      select {
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 6px 8px;
+        border-radius: 3px;
+        width: 100%;
+      }
+      input:focus,
+      select:focus {
+        outline: 1px solid var(--red);
+        border-color: var(--red);
+      }
+
+      .btn {
+        background: var(--red);
+        color: #fff;
+        border: none;
+        font-family: var(--display);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 7px 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          opacity 0.15s;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: #c4101f;
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--text2);
+      }
+      .btn-ghost:hover {
+        border-color: var(--text2);
+        background: var(--bg3);
+      }
+      .btn-green {
+        background: var(--green);
+        color: #000;
+      }
+      .btn-green:hover {
+        background: #00c488;
+      }
+
+      .strategy-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .strategy-table th {
+        font-family: var(--display);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text3);
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--border);
+      }
+      .strategy-table td {
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+      }
+      .strategy-table tr:hover td {
+        background: var(--bg3);
+      }
+      .strategy-table tr.best td {
+        background: rgba(232, 25, 44, 0.08);
+      }
+      .strategy-table tr.best td:first-child {
+        border-left: 2px solid var(--red);
+      }
+
+      .compound-badge {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 2px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+      }
+      .C-SOFT {
+        background: rgba(232, 25, 44, 0.2);
+        color: #f87171;
+      }
+      .C-MEDIUM {
+        background: rgba(245, 166, 35, 0.2);
+        color: var(--amber);
+      }
+      .C-HARD {
+        background: rgba(136, 136, 160, 0.2);
+        color: var(--text2);
+      }
+      .C-INTER {
+        background: rgba(79, 168, 245, 0.2);
+        color: var(--blue);
+      }
+      .C-WET {
+        background: rgba(79, 168, 245, 0.3);
+        color: #93c5fd;
+      }
+
+      /* ── Simulation view ── */
+      #view-simulation {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        overflow-y: auto;
+      }
+      #view-simulation.active {
+        display: flex;
+      }
+
+      .sim-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .prob-bar-row {
+        display: grid;
+        grid-template-columns: 40px 1fr 80px;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+      }
+      .prob-bar-bg {
+        background: var(--bg3);
+        border-radius: 2px;
+        height: 16px;
+        overflow: hidden;
+        position: relative;
+      }
+      .prob-bar-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.5s ease;
+      }
+      .prob-bar-label {
+        color: var(--text2);
+        font-size: 10px;
+        text-align: right;
+      }
+
+      /* ── Championship view ── */
+      #view-championship {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        overflow-y: auto;
+      }
+      #view-championship.active {
+        display: flex;
+      }
+
+      /* ── Right panel ── */
+      .right-panel {
+        background: var(--bg2);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .right-section {
+        border-bottom: 1px solid var(--border);
+        padding: 10px 12px;
+      }
+
+      /* ── Live feed ── */
+      .live-feed {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .feed-item {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 6px;
+        padding: 4px 6px;
+        border-radius: 2px;
+        font-size: 10px;
+        line-height: 1.4;
+      }
+      .feed-time {
+        color: var(--text3);
+      }
+      .feed-msg {
+        color: var(--text2);
+      }
+      .feed-item.alert .feed-msg {
+        color: var(--amber);
+      }
+      .feed-item.pit .feed-msg {
+        color: var(--green);
+      }
+      .feed-item.sc .feed-msg {
+        color: var(--red);
+      }
+
+      /* ── Telemetry view ── */
+      #view-telemetry {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        overflow-y: auto;
+      }
+      #view-telemetry.active {
+        display: flex;
+      }
+
+      /* ── Spinner ── */
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--border2);
+        border-top-color: var(--red);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 40px;
+        color: var(--text3);
+        font-size: 11px;
+      }
+
+      /* ── Scrollbar ── */
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg2);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+
+      /* ── Stat cards ── */
+      .stat-card {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 10px 12px;
+      }
+      .stat-value {
+        font-family: var(--display);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 10px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 4px;
+      }
+      .stat-sub {
+        font-size: 11px;
+        color: var(--text2);
+        margin-top: 2px;
+      }
+
+      /* ── Track map placeholder ── */
+      .track-map {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text3);
+        font-size: 11px;
+        min-height: 160px;
+        position: relative;
+        overflow: hidden;
+      }
+      canvas.track-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">RACE<span>BOX</span></div>
+      <div class="nav-tabs">
+        <button class="tab active" data-view="race">Race Wall</button>
+        <button class="tab" data-view="strategy">Strategy</button>
+        <button class="tab" data-view="simulation">Simulation</button>
+        <button class="tab" data-view="telemetry">Telemetry</button>
+        <button class="tab" data-view="championship">Championship</button>
+      </div>
+      <div style="flex: 1"></div>
+      <div class="header-controls">
+        <select class="year-select" id="yearSelect">
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+        </select>
+        <select class="gp-select" id="gpSelect" style="min-width: 160px">
+          <option>Loading schedule…</option>
+        </select>
+        <div class="status-dot" title="API Online"></div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Left sidebar: driver standings -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Driver standings</div>
+        </div>
+        <div class="standings-list" id="standingsList">
+          <div class="loading-overlay">
+            <span class="spinner"></span> Loading…
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content area -->
+      <div class="content">
+        <!-- Race Wall -->
+        <div
+          class="view active"
+          id="view-race"
+          style="
+            padding: 12px;
+            overflow-y: auto;
+            gap: 10px;
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <div class="race-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-winner">—</div>
+              <div class="stat-label">Race winner</div>
+              <div class="stat-sub" id="stat-winner-team">
+                Select a GP to load
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-fastest">—</div>
+              <div class="stat-label">Fastest lap</div>
+              <div class="stat-sub" id="stat-fastest-time">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-laps">—</div>
+              <div class="stat-label">Total laps</div>
+              <div class="stat-sub" id="stat-circuit">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-dnf">—</div>
+              <div class="stat-label">DNFs</div>
+              <div class="stat-sub">Retirements this race</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Race classification</span>
+              <button
+                class="btn btn-ghost"
+                style="font-size: 10px; padding: 3px 10px"
+                onclick="loadRaceResults()"
+              >
+                Reload
+              </button>
+            </div>
+            <div style="overflow-x: auto">
+              <table class="strategy-table" id="resultsTable">
+                <thead>
+                  <tr>
+                    <th>Pos</th>
+                    <th>Driver</th>
+                    <th>Team</th>
+                    <th>Status</th>
+                    <th>Points</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsBody">
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="
+                        color: var(--text3);
+                        padding: 20px;
+                        text-align: center;
+                      "
+                    >
+                      Select a year + GP above to load race data
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Lap time evolution</span>
+              <span
+                id="lapChartDrivers"
+                style="font-size: 10px; color: var(--text3)"
+                >Top 5 drivers</span
+              >
+            </div>
+            <div class="chart-container">
+              <canvas id="lapChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strategy -->
+        <div class="view" id="view-strategy">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Strategy comparison engine</span>
+            </div>
+            <div class="panel-body">
+              <div class="strategy-controls">
+                <div class="field-group">
+                  <label class="field-label">Race laps</label>
+                  <input
+                    type="number"
+                    id="stratLaps"
+                    value="56"
+                    min="20"
+                    max="78"
+                  />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Base lap time (s)</label>
+                  <input type="number" id="stratBase" value="90.5" step="0.1" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Mode</label>
+                  <select id="stratMode">
+                    <option value="auto">Auto-generate all</option>
+                    <option value="custom">Custom strategies</option>
+                  </select>
+                </div>
+                <button class="btn" onclick="runStrategyComparison()">
+                  Analyse
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Top strategies ranked</span>
+              <span
+                id="stratCount"
+                style="font-size: 10px; color: var(--text3)"
+              ></span>
+            </div>
+            <div style="overflow-x: auto; max-height: 340px; overflow-y: auto">
+              <table class="strategy-table" id="stratTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Strategy</th>
+                    <th>Stops</th>
+                    <th>Race time</th>
+                    <th>Delta</th>
+                  </tr>
+                </thead>
+                <tbody id="stratBody">
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="
+                        color: var(--text3);
+                        padding: 20px;
+                        text-align: center;
+                      "
+                    >
+                      Click Analyse to run strategy comparison
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="race-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Tyre degradation model</span>
+              </div>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="degChart"></canvas>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Stint time comparison</span>
+              </div>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="stintChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulation -->
+        <div class="view" id="view-simulation">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Monte Carlo race simulator</span>
+              <span style="font-size: 10px; color: var(--text3)"
+                >Runs N complete race simulations</span
+              >
+            </div>
+            <div class="panel-body">
+              <div class="sim-controls">
+                <div class="field-group">
+                  <label class="field-label">Simulations</label>
+                  <select id="simN">
+                    <option value="200">200 (fast)</option>
+                    <option value="500" selected>500</option>
+                    <option value="1000">1000 (slow)</option>
+                    <option value="2000">2000 (very slow)</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Race laps</label>
+                  <input
+                    type="number"
+                    id="simLaps"
+                    value="56"
+                    min="20"
+                    max="78"
+                  />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Grid source</label>
+                  <select id="simGrid">
+                    <option value="standings">Current standings</option>
+                  </select>
+                </div>
+                <button class="btn btn-green" onclick="runSimulation()">
+                  Run sim
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="race-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Win probabilities</span>
+              </div>
+              <div class="panel-body" id="winProbList">
+                <div class="loading-overlay" style="padding: 20px">
+                  Run simulation to see results
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Podium probabilities</span>
+              </div>
+              <div class="panel-body" id="podiumProbList">
+                <div class="loading-overlay" style="padding: 20px">
+                  Run simulation to see results
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Position distribution heatmap</span>
+              <span
+                id="simMeta"
+                style="font-size: 10px; color: var(--text3)"
+              ></span>
+            </div>
+            <div class="chart-container" style="height: 260px">
+              <canvas id="simHeatmap"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry -->
+        <div class="view" id="view-telemetry">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Driver telemetry comparison</span>
+            </div>
+            <div class="panel-body">
+              <div class="strategy-controls">
+                <div class="field-group">
+                  <label class="field-label">Driver A</label>
+                  <input
+                    type="text"
+                    id="telDriverA"
+                    placeholder="VER"
+                    maxlength="3"
+                    style="text-transform: uppercase"
+                  />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Driver B</label>
+                  <input
+                    type="text"
+                    id="telDriverB"
+                    placeholder="NOR"
+                    maxlength="3"
+                    style="text-transform: uppercase"
+                  />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Session</label>
+                  <select id="telSession">
+                    <option value="Q">Qualifying</option>
+                    <option value="R">Race</option>
+                  </select>
+                </div>
+                <button class="btn" onclick="loadTelemetry()">
+                  Load telemetry
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="race-grid">
+            <div class="stat-card">
+              <div class="stat-value" style="font-size: 20px" id="telLapA">
+                —
+              </div>
+              <div class="stat-label">Driver A lap time</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="font-size: 20px" id="telLapB">
+                —
+              </div>
+              <div class="stat-label">Driver B lap time</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Speed trace comparison</span>
+            </div>
+            <div class="chart-container" style="height: 200px">
+              <canvas id="speedChart"></canvas>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Delta (A − B)</span>
+            </div>
+            <div class="chart-container" style="height: 140px">
+              <canvas id="deltaChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Championship -->
+        <div class="view" id="view-championship">
+          <div class="race-grid-3">
+            <div class="stat-card" id="champLeader">
+              <div class="stat-value">—</div>
+              <div class="stat-label">Championship leader</div>
+              <div class="stat-sub">—</div>
+            </div>
+            <div class="stat-card" id="champRounds">
+              <div class="stat-value">—</div>
+              <div class="stat-label">Rounds remaining</div>
+              <div class="stat-sub">—</div>
+            </div>
+            <div class="stat-card" id="champPts">
+              <div class="stat-value">—</div>
+              <div class="stat-label">Max pts still available</div>
+              <div class="stat-sub">—</div>
+            </div>
+          </div>
+
+          <div class="race-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Title probability</span>
+                <button
+                  class="btn"
+                  style="font-size: 10px; padding: 3px 10px"
+                  onclick="loadChampionship()"
+                >
+                  Reload
+                </button>
+              </div>
+              <div class="panel-body" id="titleProbList">
+                <div class="loading-overlay" style="padding: 20px">
+                  Loading championship data…
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Points progression</span>
+              </div>
+              <div class="chart-container" style="height: 240px">
+                <canvas id="champChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Full standings</span>
+            </div>
+            <div style="overflow-x: auto">
+              <table class="strategy-table" id="champTable">
+                <thead>
+                  <tr>
+                    <th>Pos</th>
+                    <th>Driver</th>
+                    <th>Team</th>
+                    <th>Points</th>
+                    <th>Wins</th>
+                    <th>Gap</th>
+                    <th>Title %</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="champBody">
+                  <tr>
+                    <td
+                      colspan="8"
+                      style="
+                        color: var(--text3);
+                        padding: 20px;
+                        text-align: center;
+                      "
+                    >
+                      Loading…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /content -->
+
+      <!-- Right panel -->
+      <aside class="right-panel">
+        <div class="right-section">
+          <div class="sidebar-label">Session info</div>
+          <div
+            id="sessionInfo"
+            style="color: var(--text2); font-size: 11px; line-height: 1.8"
+          >
+            <div>
+              Year: <span id="infoYear" style="color: var(--text)">—</span>
+            </div>
+            <div>GP: <span id="infoGP" style="color: var(--text)">—</span></div>
+            <div>
+              Round: <span id="infoRound" style="color: var(--text)">—</span>
+            </div>
+            <div>
+              Date: <span id="infoDate" style="color: var(--text)">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="right-section">
+          <div class="sidebar-label">Constructor standings</div>
+          <div
+            id="constructorList"
+            style="display: flex; flex-direction: column; gap: 4px"
+          >
+            <div class="loading-overlay" style="padding: 10px">
+              <span class="spinner"></span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="right-section"
+          style="
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          "
+        >
+          <div class="sidebar-label">Race log</div>
+          <div class="live-feed" id="liveFeed">
+            <div class="feed-item">
+              <span class="feed-time">00:00</span
+              ><span class="feed-msg"
+                >RaceBox initialised. Select a GP to begin.</span
+              >
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

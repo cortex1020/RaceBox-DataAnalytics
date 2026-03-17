@@ -1,69 +1,93 @@
-# RaceBox — F1 Race Intelligence Platform
+# RaceBox - F1 Race Intelligence Platform
 
-A full-stack F1 data platform combining real race data, strategy modelling,
-Monte Carlo simulation, and driver telemetry. Feels like running a pit wall.
+RaceBox is a full-stack Formula 1 analytics platform that combines live and historical race data, strategy modeling, Monte Carlo simulation, telemetry comparison, and championship projections.
 
 ## Features
 
-| Module | What it does |
-|---|---|
-| **Race Wall** | Full race classification, lap time charts, DNF tracker |
-| **Strategy Engine** | Tyre degradation model, optimal pit windows, undercut/overcut analysis |
-| **Monte Carlo Sim** | Run N race simulations, get win/podium/points probability distributions |
-| **Telemetry** | Head-to-head speed traces, throttle/brake, sector times, GPS heatmap |
-| **Championship** | Live standings + title probability simulation for 2024 & 2025 |
+| Module          | Description                                                          |
+| --------------- | -------------------------------------------------------------------- |
+| Race Wall       | Race classification, lap-time trends, DNF tracking                   |
+| Strategy Engine | Tyre degradation model, pit-window analysis, undercut/overcut checks |
+| Monte Carlo Sim | Win, podium, points, and position probability distributions          |
+| Telemetry       | Driver-vs-driver speed/throttle/brake comparison + pace analysis     |
+| Championship    | Current standings with title probability simulations                 |
+
+## Tech Stack
+
+- Backend: FastAPI + Uvicorn
+- Data: fastf1, Jolpica Ergast-compatible API, OpenF1
+- Analytics: pandas, numpy
+- Frontend: single-page dashboard (`index.html` + `app.js`) with Chart.js
+
+## Project Layout
+
+This repository currently uses a flat layout (no `racebox/` package folder):
+
+```text
+F1-Simulator/
+|- main.py
+|- run.py
+|- data_loader.py
+|- strategy.py
+|- simulator.py
+|- telemetry.py
+|- championship.py
+|- index.html
+|- app.js
+|- requirements.txt
+|- cache/                # auto-created fastf1 cache
+```
 
 ## Setup
 
+### 1) Create and activate a virtual environment
+
+Linux/macOS:
+
 ```bash
-cd racebox
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### 2) Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-## Running
+## Run
 
 ```bash
-# From the project root (one level above racebox/)
-python -m racebox.run
-
-# Or from inside racebox/
 python run.py
+```
 
-# Dev mode (hot reload)
+Dev mode:
+
+```bash
 python run.py --reload
+```
 
-# Custom port
+Custom port:
+
+```bash
 python run.py --port 8080
 ```
 
-Then open **http://localhost:8000** in your browser.
+Open:
 
-API documentation is auto-generated at **http://localhost:8000/docs**
+- Dashboard: `http://localhost:8000`
+- API docs: `http://localhost:8000/docs`
 
-## Project structure
+## Key API Endpoints
 
-```
-racebox/
-├── run.py                    # Entry point
-├── requirements.txt
-├── core/
-│   ├── data_loader.py        # fastf1 + Ergast + OpenF1 unified fetch layer
-│   ├── strategy.py           # Tyre model, stint builder, undercut analysis
-│   ├── simulator.py          # Monte Carlo race engine
-│   ├── telemetry.py          # Driver comparison, GPS heatmap
-│   └── championship.py       # Standings + title probability
-├── api/
-│   └── main.py               # FastAPI app with all REST endpoints
-├── dashboard/
-│   ├── index.html            # Single-page race control dashboard
-│   └── static/
-│       └── js/app.js         # All dashboard logic + Chart.js renders
-└── cache/                    # fastf1 session cache (auto-populated)
-```
-
-## Key API endpoints
-
-```
+```text
 GET  /api/schedule/{year}
 GET  /api/race/{year}/{gp}/results
 GET  /api/race/{year}/{gp}/laps
@@ -78,16 +102,19 @@ GET  /api/standings/drivers/{year}
 GET  /api/standings/constructors/{year}
 ```
 
-## Data sources
+## Data Sources
 
-- **fastf1** — lap times, telemetry, tyre data, GPS (local cache after first load)
-- **Ergast API** — race results, standings, historical data
-- **OpenF1 API** — live timing, pit data, weather (for current season)
+- fastf1: session, laps, telemetry, weather, GPS
+- Jolpica Ergast-compatible API: standings, historical race data
+- OpenF1: live timing, pit, weather, session metadata
 
-## Notes
+## Notes and Troubleshooting
 
-- First load of a session downloads ~50–200MB via fastf1 and caches it locally
-- Subsequent loads are near-instant from cache
-- 2025 data only available for completed rounds
-- Monte Carlo sim with 1000 iterations takes ~2–5 seconds
-- Strategy comparison auto-generates ~500+ candidate strategies
+- First-time `fastf1` session loads can download large datasets and may take time.
+- Cached data is stored in `cache/` and makes repeat requests much faster.
+- If you are on Ubuntu/Debian and see `externally-managed-environment`, install packages inside `.venv` (recommended) instead of system Python.
+- Static dashboard script is served at `/static/app.js`.
+
+## License
+
+Add your preferred license file (`LICENSE`) for open-source distribution.

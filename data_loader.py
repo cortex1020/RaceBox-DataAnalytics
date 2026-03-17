@@ -71,7 +71,30 @@ def get_results(year: int, gp: str | int) -> pd.DataFrame:
         "Position", "Points", "Status", "Laps",
     ]
     cols = [c for c in preferred if c in session.results.columns]
-    return session.results[cols].copy()
+    results = session.results[cols].copy()
+
+    # Reconstruct fastest-lap info from lap data to keep API stable for frontend.
+    fastest_driver = None
+    fastest_lap_seconds = None
+    try:
+        fastest_lap = session.laps.pick_fastest()
+        fastest_driver = fastest_lap.get("Driver")
+        lap_time = fastest_lap.get("LapTime")
+        if pd.notna(lap_time):
+            fastest_lap_seconds = float(lap_time.total_seconds())
+    except Exception:
+        pass
+
+    results["FastestLap"] = (
+        results["Abbreviation"].eq(fastest_driver)
+        if fastest_driver is not None
+        else False
+    )
+    results["FastestLapTime"] = None
+    if fastest_lap_seconds is not None and fastest_driver is not None:
+        results.loc[results["FastestLap"], "FastestLapTime"] = float(fastest_lap_seconds)
+
+    return results
 
 
 # ─── Ergast API ─────────────────────────────────────────────────────────────────

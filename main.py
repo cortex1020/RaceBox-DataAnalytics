@@ -67,7 +67,8 @@ async def get_race_results(year: int, gp: str):
     try:
         gp_key = int(gp) if gp.isdigit() else gp
         results = dl.get_results(year, gp_key)
-        return results.to_dict(orient="records")
+        # FastAPI JSON serialization rejects NaN values; convert them to nulls.
+        return results.where(results.notna(), None).to_dict(orient="records")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,21 +1,35 @@
-MIT License
+Copyright (c) 2026 Sanaullah Turab. All rights reserved.
 
-Copyright (c) 2026 Sanaullah Turab
+This software and its source code are the exclusive intellectual property of
+Sanaullah Turab. Unauthorized copying, distribution, modification, or commercial
+use of this software, in whole or in part, is strictly prohibited without prior
+written permission from the copyright holder.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+PERMITTED USE
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+You are permitted to:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  - Study and read the source code for personal learning and educational purposes.
+  - Fork and modify the code solely for non-commercial, educational projects.
+  - Submit pull requests and contributions to this repository.
+
+By submitting a contribution (pull request, issue, or otherwise), you agree that
+your contribution becomes part of this project and is subject to the same
+copyright terms. The copyright holder retains full ownership of the project
+including all accepted contributions.
+
+RESTRICTIONS
+
+You may not:
+
+  - Use this software or any derivative of it for commercial purposes.
+  - Redistribute, sell, sublicense, or publish this software or substantial
+    portions of it as your own work.
+  - Deploy a public-facing instance of this software without written permission
+    from the copyright holder.
+
+DISCLAIMER
+
+This software is provided "as is", without warranty of any kind. The copyright
+holder is not liable for any claim, damages, or other liability arising from
+the use of this software.

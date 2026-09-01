@@ -135,8 +135,8 @@ If you want to add features, fix bugs, or improve docs:
 
 ## License
 
-This project is licensed under the MIT License.
+Copyright (c) 2026 Sanaullah Turab. All rights reserved.
 
-Copyright (c) 2026 Sanaullah Turab
+This project is proprietary and confidential. Unauthorized copying, distribution, modification, or commercial use is strictly prohibited.
 
-See `LICENSE` for full text.
+See `LICENSE` for full terms.
